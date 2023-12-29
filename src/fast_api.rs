@@ -26,6 +26,16 @@ extern "C" {
 #[derive(Default)]
 pub struct CFunctionInfo(Opaque);
 
+pub struct DroppableCFunctionInfo(NonNull<CFunctionInfo>);
+
+impl Drop for DroppableCFunctionInfo {
+  fn drop(&mut self) {
+    unsafe {
+      v8__CFunctionInfo__DELETE(self.0.as_ptr());
+    }
+  }
+}
+
 #[repr(C)]
 #[derive(Default)]
 pub struct CFunction(Opaque);
