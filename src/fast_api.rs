@@ -19,6 +19,7 @@ extern "C" {
     args_info: *const CTypeInfo,
     repr: Int64Representation,
   ) -> *mut CFunctionInfo;
+  fn v8__CFunctionInfo__DELETE(c_function_info: *mut CFunctionInfo);
 }
 
 #[repr(C)]
