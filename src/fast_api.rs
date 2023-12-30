@@ -26,7 +26,13 @@ extern "C" {
 #[derive(Default)]
 pub struct CFunctionInfo(Opaque);
 
-pub struct DroppableCFunctionInfo(NonNull<CFunctionInfo>);
+pub struct DroppableCFunctionInfo(pub NonNull<CFunctionInfo>);
+
+impl From<NonNull<CFunctionInfo>> for DroppableCFunctionInfo {
+  fn from(value: NonNull<CFunctionInfo>) -> Self {
+    Self(value)
+  }
+}
 
 impl Drop for DroppableCFunctionInfo {
   fn drop(&mut self) {
