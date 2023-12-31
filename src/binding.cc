@@ -2045,6 +2045,14 @@ v8::CTypeInfo* v8__CTypeInfo__New__From__Slice(unsigned int len,
   return v;
 }
 
+void v8__CTypeInfo__DELETE(v8::CTypeInfo *c_type_info_ptr, bool slice) {
+  if (slice) {
+    free(c_type_info_ptr);
+  } else {
+    delete c_type_info_ptr;
+  }
+}
+
 v8::CFunctionInfo* v8__CFunctionInfo__New(
     const v8::CTypeInfo& return_info, unsigned int args_len,
     v8::CTypeInfo* args_info, v8::CFunctionInfo::Int64Representation repr) {

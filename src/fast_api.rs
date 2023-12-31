@@ -13,13 +13,14 @@ extern "C" {
     len: usize,
     tys: *const CTypeSequenceInfo,
   ) -> *mut CTypeInfo;
+  fn v8__CTypeInfo__DELETE(c_type_info_ptr: *mut CTypeInfo, slice: bool);
   fn v8__CFunctionInfo__New(
     return_info: *const CTypeInfo,
     args_len: usize,
     args_info: *const CTypeInfo,
     repr: Int64Representation,
   ) -> *mut CFunctionInfo;
-  fn v8__CFunctionInfo__DELETE(c_function_info: *mut CFunctionInfo);
+  fn v8__CFunctionInfo__DELETE(c_function_info_ptr: *mut CFunctionInfo);
 }
 
 #[repr(C)]
@@ -66,6 +67,16 @@ impl CFunctionInfo {
 #[repr(C)]
 #[derive(Debug)]
 pub struct CTypeInfo(Opaque);
+
+pub struct DroppableCTypeInfo(pub NonNull<CTypeInfo>, pub bool);
+
+impl Drop for DroppableCTypeInfo {
+  fn drop(&mut self) {
+    unsafe {
+      v8__CTypeInfo__DELETE(self.0.as_ptr(), self.1);
+    }
+  }
+}
 
 impl CTypeInfo {
   #[inline(always)]
