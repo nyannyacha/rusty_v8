@@ -30,6 +30,7 @@ use crate::Function;
 use crate::FunctionCodeHandling;
 use crate::HandleScope;
 use crate::Local;
+use crate::Locker;
 use crate::Message;
 use crate::Module;
 use crate::Object;
@@ -802,11 +803,11 @@ impl Isolate {
     slots[slot as usize] = data;
   }
 
-  pub(crate) fn init_scope_root(&mut self) {
+  pub unsafe fn init_scope_root(&mut self) {
     ScopeData::new_root(self);
   }
 
-  pub(crate) fn dispose_scope_root(&mut self) {
+  pub unsafe fn dispose_scope_root(&mut self) {
     ScopeData::drop_root(self);
   }
 
@@ -1599,7 +1600,9 @@ impl OwnedIsolate {
   pub(crate) fn new_already_entered(cxx_isolate: *mut Isolate) -> Self {
     let cxx_isolate = NonNull::new(cxx_isolate).unwrap();
     let mut owned_isolate = Self { cxx_isolate };
-    owned_isolate.init_scope_root();
+    unsafe {
+      owned_isolate.init_scope_root();
+    }
     owned_isolate
   }
 }
@@ -1617,8 +1620,10 @@ impl Drop for OwnedIsolate {
         self.cxx_isolate.as_mut() as *mut Isolate == v8__Isolate__GetCurrent(),
         "v8::OwnedIsolate instances must be dropped in the reverse order of creation. They are entered upon creation and exited upon being dropped."
       );
-      self.exit();
-      self.dispose_scope_root();
+      if !Locker::is_locked(self) {
+        self.exit();
+        self.dispose_scope_root();
+      }
       self.dispose_annex();
       self.dispose();
     }
